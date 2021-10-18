@@ -1,0 +1,238 @@
+[LL_WEBREPORT_EXCLUDEHTML /]
+<html>
+
+<head>
+    <style>
+
+
+
+    </style>
+</head>
+<script src="/img/core/jquery.min.js"></script>
+<script src="/img/docviewer/HTML/viewer/lib/hoops/js/jquery/jquery-ui-1.10.3.min.js"></script>
+<script src="[LL_SUPPORTPATH /]core/jquery.min.js"></script>
+
+
+</script>
+<script>
+
+</script>
+
+<body>
+    <table border=1 cellspacing=0 cellpadding=1>
+        <tr>
+            <td bgcolor="#00BFFF"><input type="checkbox" class="checkall"></td>
+            <td bgcolor="#00BFFF">Country Code</td>
+            <td bgcolor="#00BFFF">Country Name</td>
+            <td bgcolor="#00BFFF">SKU Code</td>
+            <td bgcolor="#00BFFF">SKU Desc</td>
+            <td bgcolor="#00BFFF">Active Status</td>
+        </tr>
+
+        [LL_WEBREPORT_STARTROW /]
+        <tr>
+            <td><input type="checkbox" name="type " id="check1" class="checkhour"
+                    value='[LL_REPTAG_3 /]|[LL_REPTAG_4 /]'> </td>
+            <td>[LL_REPTAG_1 /]</td>
+            <td>[LL_REPTAG_2 /]</td>
+            <td>[LL_REPTAG_3 /]</td>
+            <td>[LL_REPTAG_4 /] </td>
+            <td> [LL_REPTAG_5 /]</td>
+        </tr>
+        [LL_WEBREPORT_ENDROW /]
+    </table>
+
+    <input type="button" value="Submit" onclick="GetCheck('No');">
+    <input type="button" value="Cancel" onclick="Close();">
+    <input type="button" value="Clear" onclick="ClearFields();">
+
+</body>
+
+<script>
+    function ClearFields() {
+        GetCheck("Yes");
+    };
+</script>
+
+<script>
+    function GetCheck(flag) {
+        var name = "";
+        var codes = "";
+
+        if (flag == "Yes") {
+            $("#check1").each(function () {
+                codes = "'" + $(this).val().split("|")[0] + "'";
+                return false;
+            });
+        }
+
+        $("#check1:checked").each(function () {
+            if (name == "") {
+                name = $(this).val();
+                codes = "'" + $(this).val().split("|")[0] + "'";
+            }
+            else {
+                name = name + ";" + "\n" + $(this).val();
+                codes = codes + "," + "'" + $(this).val().split("|")[0] + "'";
+            }
+        });
+
+        opener.$('#_1_1_152_1').text(name);
+        var saveData
+        var saveDatatest
+        var insertdiv;
+        var country = ""
+        var insertdivtest;
+        var testtrim;
+        var sections;
+
+        if (codes != "") {
+            var errorData = $.ajax({
+                method: 'GET',
+                url: "[LL_REPTAG_URLPREFIXFULL /]?func=ll&objId=[LL_REPTAG_$id_of_WRtopopulate /]&objAction=RunReport&inputLabel1=" + codes,
+                dataType: "text",
+                success: function (resultData) {
+                    saveData = resultData;
+                    opener.document.myForm._1_1_15_1.value = saveData;
+                    var extractname = saveData.split(';');
+                    if (extractname.length > 2) {
+                        opener.document.myForm._1_1_142_1.value = "Yes";
+                    }
+                    else {
+                        opener.document.myForm._1_1_142_1.value = "No";
+                    }
+
+                    $(extractname).each(function (i, val) {
+                        if (country == "") {
+
+                            country = "'" + val.split("-")[0].trim() + "'";
+                        }
+                        else {
+                            if (val != "") {
+                                country = country + "," + "'" + val.split("-")[0].trim() + "'";
+                            }
+                        }
+                    });
+
+                    if (flag == "Yes") {
+                        opener.$("#_1_1_15_1").val("");
+                        opener.$("#_1_1_152_1").text("");
+                        if (opener.$("#_1_1_124_1").val() != "") {
+                            country = "'" + opener.$("#_1_1_124_1").val().split("-")[0].trim() + "'";
+                        }
+                    }
+
+                    if (opener.$(".populateMgAppr").children().length != 0) {
+                        var selectedcountry;
+                        if (flag != "Yes") {
+                            if (opener.$("#_1_1_124_1").val() != "") {
+                                country = country + "," + "'" + opener.$("#_1_1_124_1").val().split("-")[0].trim() + "'";
+                            }
+                        }
+                        if (opener.$("#_1_1_153_1").val() != "") {
+                            selectedcountry = opener.$("#_1_1_153_1").val().split(";");
+                            $.each(selectedcountry, function (i, val) {
+                                country = country + "," + "'" + val.split("-")[0].trim() + "'";
+                            });
+                        }
+                    }
+
+                    var errorDatatest = $.ajax({
+                        method: 'GET',
+                        url: "[LL_REPTAG_URLPREFIXFULL /]?func=ll&objId=[LL_REPTAG_$id_of_WRtoManagers /]&objAction=RunReport&inputLabel1=" + country,
+                        dataType: "text",
+                        success: function (resultData) {
+                            saveDatatest = resultData;
+                            insertdiv = saveDatatest.trim();
+
+                            var populatemgap = $.ajax({
+                                method: 'GET',
+                                url: "[LL_REPTAG_URLPREFIXFULL /]?func=ll&objId=[LL_REPTAG_$id_of_WRtoManagersSet /]&objAction=RunReport&inputLabel1=" + country,
+                                dataType: "text",
+                                success: function (resultData) {
+                                    testtrim = resultData;
+                                    insertdivtest = testtrim.trim();
+                                    opener.$('#populateMg').html(insertdiv);
+                                    opener.$(".removeset").html("");
+                                    //opener.document.myForm._1_1_153_1.value = "";
+
+                                    sections = insertdivtest.split('|*|');
+                                    opener.$('.populateMgAppr').html(sections[0]);
+                                    opener.$('.populateMgAppr1').html(sections[1]);
+
+                                    // window.close(opener.myWindow);
+                                    var populategm = $.ajax({
+                                        method: 'GET',
+                                        url: "[LL_REPTAG_URLPREFIXFULL /]?func=ll&objId=[LL_REPTAG_$id_of_WRtoGM /]&objAction=RunReport&inputLabel1=" + country,
+                                        dataType: "text",
+                                        success: function (resultData) {
+                                            saveDatatest = resultData;
+                                            insertdiv = saveDatatest.trim();
+
+                                            //window.close(opener.myWindow);
+                                            var populategmset = $.ajax({
+                                                method: 'GET',
+                                                url: "[LL_REPTAG_URLPREFIXFULL /]?func=ll&objId=[LL_REPTAG_$id_of_WRtoGMSet /]&objAction=RunReport&inputLabel1=" + country,
+                                                dataType: "text",
+                                                success: function (resultData) {
+                                                    testtrim = resultData;
+                                                    insertdivtest = testtrim.trim();
+                                                    opener.$('#gmpopulate').html(insertdiv);
+                                                    // opener.$(".removeset").html("");
+                                                    //opener.document.myForm._1_1_153_1.value = "";
+
+                                                    sections = insertdivtest.split('|*|');
+                                                    opener.$('.gmpopulateAppr').html(sections[0]);
+                                                    opener.$('.gmpopulateAppr1').html(sections[1]);
+                                                    opener.$(".removeset1").html("");
+                                                    window.close(opener.myWindow);
+                                                },
+                                                error: function () {
+                                                    console.log('Something went wrong')
+                                                }
+                                            });
+                                        },
+                                        error: function () {
+                                            console.log('Something went wrong')
+                                        }
+                                    });
+                                },
+                                error: function () {
+                                    console.log('Something went wrong')
+                                }
+                            });
+                            // window.close(opener.myWindow);
+                        },
+                        error: function () {
+                            console.log('Something went wrong')
+                        }
+                    });
+                },
+                error: function () {
+                    console.log('Something went wrong')
+                }
+            });
+        }
+        else {
+            if (flag != "Yes") {
+                alert("This Country does not have any Product");
+            }
+            window.close(opener.myWindow);
+        }
+    };
+</script>
+<script>
+    function Close() {
+        window.close(opener.myWindow);
+    };
+</script>
+
+<script>
+    var clicked = false;
+    $(".checkall").on("click", function () {
+        $(".checkhour").prop("checked", !clicked);
+        clicked = !clicked;
+    });
+</script>
+
+</html>
